@@ -105,7 +105,7 @@
       .menu { display: none; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
       .menu:focus { outline: 2px solid rgba(212,175,55,0.6); outline-offset: 2px; }
       .menu svg { width: 24px; height: 24px; }
-      .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 40; }
+      .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.68); opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 40; }
       .nav-overlay.open { opacity: 1; pointer-events: auto; }
 
       /* HERO */
@@ -267,9 +267,9 @@
         .nav-links {
           position: fixed; top: var(--header-h); right: 0; bottom: 0; z-index: 45;
           width: min(86vw, 360px);
-          background: rgba(18,22,29,.96);
+          background: #12161d;
           border-left: 1px solid var(--border);
-          backdrop-filter: blur(8px);
+          backdrop-filter: none;
           padding: 18px;
           border-radius: 0;
           flex-direction: column; gap: 4px;
@@ -279,7 +279,8 @@
           transition: opacity 180ms ease, transform 220ms ease;
         }
         .nav-links.open { opacity: 1; transform: none; pointer-events: all; }
-        .nav-links a { display: block; width: 100%; padding: 14px 12px; border-radius: 10px; }
+        .nav-links a { display: block; width: 100%; padding: 14px 12px; border-radius: 10px; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); border-color: rgba(212,175,55,0.25); }
         .nav-links a:focus { outline: 2px solid rgba(212,175,55,0.5); outline-offset: 2px; }
         body.no-scroll { overflow: hidden; }
         section { padding: 64px 0; }
@@ -363,7 +364,7 @@
       <div class="container">
         <div class="brand">
           <span class="mark" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#0b0e12" d="M3 13c0-1 .4-2 1.1-2.7l3.9-3.2c.5-.4 1.1-.6 1.8-.6h4.4c.7 0 1.3.2 1.8.6l3.9 3.2c.7.6 1.1 1.6 1.1 2.7v3c0 .6-.4 1-1 1h-1.1l-.8 2.5c-.1.3-.4.5-.8.5H6.6c-.4 0-.7-.2-.8-.5L5 17H4c-.6 0-1-.4-1-1v-3z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26"><path fill="#0b0e12" d="M5,11H19L20,8H22V7C22,6.45 21.55,6 21,6H19L18,3H6L5,6H3C2.45,6 2,6.45 2,7V8H4L5,11M6.5,16C5.67,16 5,15.33 5,14.5C5,13.67 5.67,13 6.5,13C7.33,13 8,13.67 8,14.5C8,15.33 7.33,16 6.5,16M17.5,16C16.67,16 16,15.33 16,14.5C16,13.67 16.67,13 17.5,13C18.33,13 19,13.67 19,14.5C19,15.33 18.33,16 17.5,16Z"/></svg>
           </span>
           <span>Estética Automotiva</span>
         </div>
@@ -514,7 +515,7 @@
     <section id="video">
       <div class="container">
         <div class="video-player reveal">
-          <video autoplay muted loop playsinline disablepictureinpicture oncontextmenu="return false;" tabindex="-1" aria-hidden="true">
+          <video autoplay muted loop playsinline webkit-playsinline preload="auto" controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" disablepictureinpicture oncontextmenu="return false;" tabindex="-1" aria-hidden="true">
             <source src="assets/video/6157983-hd_1920_1080_30fps.mp4" type="video/mp4" />
             Seu navegador não suporta vídeo HTML5.
           </video>
@@ -538,6 +539,48 @@
           pointer-events: none; /* impede interação (pausar/avançar) */
         }
       </style>
+      <script>
+        // Garante que o vídeo sempre esteja rodando no mobile, sem pausar
+        (function() {
+          const video = document.querySelector('#video video');
+          if (!video) return;
+
+          function ensurePlaying() {
+            try {
+              video.muted = true;
+              video.loop = true;
+              video.autoplay = true;
+              video.setAttribute('playsinline', '');
+              video.setAttribute('webkit-playsinline', '');
+              video.preload = 'auto';
+              video.removeAttribute('controls');
+              video.controls = false;
+              const p = video.play();
+              if (p && typeof p.catch === 'function') p.catch(() => {});
+            } catch (_) { /* ignora erros */ }
+          }
+
+          // Força reprodução no carregamento e quando visível
+          ensurePlaying();
+          const obs = new IntersectionObserver(entries => {
+            for (const e of entries) {
+              if (e.isIntersecting) ensurePlaying();
+            }
+          }, { threshold: 0.1 });
+          obs.observe(video);
+
+          // Se voltar ao app/aba, garante que continue
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') ensurePlaying();
+          });
+
+          // Fallback: primeira interação toca o vídeo, caso autoplay seja bloqueado
+          window.addEventListener('touchstart', ensurePlaying, { once: true });
+
+          // Evita pausa acidental
+          video.addEventListener('pause', ensurePlaying);
+        })();
+      </script>
     </section>
 
     <!-- GALERIA -->
@@ -897,7 +940,7 @@
       <div class="container">
         <div style="display:flex; align-items:center; gap:12px;">
           <div class="mark" aria-hidden="true" style="width:30px;height:30px;border-radius:8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#0b0e12" d="M3 13c0-1 .4-2 1.1-2.7l3.9-3.2c.5-.4 1.1-.6 1.8-.6h4.4c.7 0 1.3.2 1.8.6l3.9 3.2c.7.6 1.1 1.6 1.1 2.7v3c0 .6-.4 1-1 1h-1.1l-.8 2.5c-.1.3-.4.5-.8.5H6.6c-.4 0-.7-.2-.8-.5L5 17H4c-.6 0-1-.4-1-1v-3z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="#0b0e12" d="M5,11H19L20,8H22V7C22,6.45 21.55,6 21,6H19L18,3H6L5,6H3C2.45,6 2,6.45 2,7V8H4L5,11M6.5,16C5.67,16 5,15.33 5,14.5C5,13.67 5.67,13 6.5,13C7.33,13 8,13.67 8,14.5C8,15.33 7.33,16 6.5,16M17.5,16C16.67,16 16,15.33 16,14.5C16,13.67 16.67,13 17.5,13C18.33,13 19,13.67 19,14.5C19,15.33 18.33,16 17.5,16Z"/></svg>
           </div>
           <div>
             © <span id="year"></span> Estética Automotiva — Todos os direitos reservados.
